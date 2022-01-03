@@ -2,9 +2,12 @@ package com.angelfgdeveloper.store.ui
 
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
+import com.angelfgdeveloper.store.R
+import com.angelfgdeveloper.store.core.MainAux
 import com.angelfgdeveloper.store.core.OnClickListener
 import com.angelfgdeveloper.store.core.Resource
 import com.angelfgdeveloper.store.data.local.LocalStoreDataSource
@@ -15,7 +18,7 @@ import com.angelfgdeveloper.store.domain.StoreRepositoryImpl
 import com.angelfgdeveloper.store.presentation.StoreViewModel
 import com.angelfgdeveloper.store.presentation.StoreViewModelFactory
 
-class MainActivity : AppCompatActivity(), OnClickListener {
+class MainActivity : AppCompatActivity(), OnClickListener, MainAux {
 
     private lateinit var mBinding: ActivityMainBinding
     private lateinit var mAdapter: StoreAdapter
@@ -31,26 +34,42 @@ class MainActivity : AppCompatActivity(), OnClickListener {
         mBinding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(mBinding.root)
 
-        mBinding.btnSave.setOnClickListener {
-            val store = StoreEntity(name = mBinding.etName.text.toString().trim())
+//        mBinding.btnSave.setOnClickListener {
+//            val store = StoreEntity(name = mBinding.etName.text.toString().trim())
+//
+//            viewModel.addStore(store).observe(this, { result ->
+//                when (result) {
+//                    is Resource.Failure -> {
+//                        Log.d("mainActivity", "Error")
+//                    }
+//                    is Resource.Loading -> {
+//                        Log.d("mainActivity", "Cargando")
+//                    }
+//                    is Resource.Success -> {
+//                        mAdapter.add(store)
+//                    }
+//                }
+//            })
+//
+//        }
 
-            viewModel.addStore(store).observe(this, { result ->
-                when (result) {
-                    is Resource.Failure -> {
-                        Log.d("mainActivity", "Error")
-                    }
-                    is Resource.Loading -> {
-                        Log.d("mainActivity", "Cargando")
-                    }
-                    is Resource.Success -> {
-                        mAdapter.add(store)
-                    }
-                }
-            })
-
-        }
+        mBinding.fab.setOnClickListener { launchEditFragment() }
 
         setupRecyclerView()
+    }
+
+    private fun launchEditFragment() {
+        val fragment = EditStoreFragment()
+
+        val fragmentManager = supportFragmentManager
+        val fragmentTransaction = fragmentManager.beginTransaction()
+
+        fragmentTransaction.add(R.id.containerMain, fragment)
+        fragmentTransaction.addToBackStack(null)
+        fragmentTransaction.commit()
+
+//        mBinding.fab.hide()
+        hideFab()
     }
 
     private fun setupRecyclerView() {
@@ -119,5 +138,12 @@ class MainActivity : AppCompatActivity(), OnClickListener {
                 }
             }
         })
+    }
+
+    /**
+     * MainAux
+     * */
+    override fun hideFab(isVisible: Boolean) {
+        if (isVisible) mBinding.fab.show() else mBinding.fab.hide()
     }
 }
