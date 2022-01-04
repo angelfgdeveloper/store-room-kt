@@ -80,6 +80,7 @@ class EditStoreFragment : Fragment() {
                             Log.d("EditStoreFragment", "Cargando")
                         }
                         is Resource.Success -> {
+                            store.id = result.data
                             mActivity?.addStore(store)
                             hideKeyboard()
 

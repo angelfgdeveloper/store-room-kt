@@ -10,7 +10,7 @@ interface StoreDao {
 
 //    @Insert(onConflict = OnConflictStrategy.REPLACE)
     @Insert
-    suspend fun addStore(storeEntity: StoreEntity)
+    suspend fun addStore(storeEntity: StoreEntity) : Long
 
     @Update
     suspend fun updateStore(storeEntity: StoreEntity)
