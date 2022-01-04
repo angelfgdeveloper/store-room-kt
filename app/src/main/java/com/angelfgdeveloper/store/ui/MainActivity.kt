@@ -2,7 +2,6 @@ package com.angelfgdeveloper.store.ui
 
 import android.os.Bundle
 import android.util.Log
-import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
@@ -33,25 +32,6 @@ class MainActivity : AppCompatActivity(), OnClickListener, MainAux {
         viewModel = ViewModelProvider(this, StoreViewModelFactory(repo))[StoreViewModel::class.java]
         mBinding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(mBinding.root)
-
-//        mBinding.btnSave.setOnClickListener {
-//            val store = StoreEntity(name = mBinding.etName.text.toString().trim())
-//
-//            viewModel.addStore(store).observe(this, { result ->
-//                when (result) {
-//                    is Resource.Failure -> {
-//                        Log.d("mainActivity", "Error")
-//                    }
-//                    is Resource.Loading -> {
-//                        Log.d("mainActivity", "Cargando")
-//                    }
-//                    is Resource.Success -> {
-//                        mAdapter.add(store)
-//                    }
-//                }
-//            })
-//
-//        }
 
         mBinding.fab.setOnClickListener { launchEditFragment() }
 
@@ -145,5 +125,13 @@ class MainActivity : AppCompatActivity(), OnClickListener, MainAux {
      * */
     override fun hideFab(isVisible: Boolean) {
         if (isVisible) mBinding.fab.show() else mBinding.fab.hide()
+    }
+
+    override fun addStore(storeEntity: StoreEntity) {
+        mAdapter.add(storeEntity)
+    }
+
+    override fun updateStore(storeEntity: StoreEntity) {
+
     }
 }
