@@ -12,7 +12,6 @@ import androidx.lifecycle.ViewModelProvider
 import com.angelfgdeveloper.store.R
 import com.angelfgdeveloper.store.core.Resource
 import com.angelfgdeveloper.store.data.local.LocalStoreDataSource
-import com.angelfgdeveloper.store.data.local.StoreDao
 import com.angelfgdeveloper.store.data.local.StoreDatabase
 import com.angelfgdeveloper.store.data.model.StoreEntity
 import com.angelfgdeveloper.store.databinding.FragmentEditStoreBinding
@@ -21,14 +20,15 @@ import com.angelfgdeveloper.store.presentation.StoreViewModel
 import com.angelfgdeveloper.store.presentation.StoreViewModelFactory
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
-import com.google.android.material.snackbar.Snackbar
 
 class EditStoreFragment : Fragment() {
 
     private lateinit var mBinding: FragmentEditStoreBinding
     private var mActivity: MainActivity? = null
+    private lateinit var mViewModel: StoreViewModel
 
-    private lateinit var viewModel: StoreViewModel
+    private var mIsEditMode: Boolean = false
+    private var mStoreEntity: StoreEntity? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -40,7 +40,8 @@ class EditStoreFragment : Fragment() {
                 StoreDatabase.getDatabase(requireContext()).storeDao()
             )
         )
-        viewModel = ViewModelProvider(this, StoreViewModelFactory(repo))[StoreViewModel::class.java]
+        mViewModel =
+            ViewModelProvider(this, StoreViewModelFactory(repo))[StoreViewModel::class.java]
         mBinding = FragmentEditStoreBinding.inflate(inflater, container, false)
 
         return mBinding.root
@@ -48,6 +49,14 @@ class EditStoreFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        val id = arguments?.getLong(getString(R.string.arg_id), 0)
+        if (id != null && id != 0L) {
+            mIsEditMode = true
+            getStore(id)
+        } else {
+            Toast.makeText(activity, id.toString(), Toast.LENGTH_SHORT).show()
+        }
+
         mActivity = activity as? MainActivity
         mActivity?.supportActionBar?.setDisplayHomeAsUpEnabled(true)
         mActivity?.supportActionBar?.title = getString(R.string.edit_store_title_add)
@@ -60,6 +69,38 @@ class EditStoreFragment : Fragment() {
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
                 .centerCrop()
                 .into(mBinding.ivPhoto)
+        }
+    }
+
+    private fun getStore(id: Long) {
+        mViewModel.getStoreById(id).observe(viewLifecycleOwner, { result ->
+            when (result) {
+                is Resource.Failure -> {
+                    Log.d("EditStoreFragment", "Error")
+                }
+                is Resource.Loading -> {
+                    Log.d("EditStoreFragment", "Cargando")
+                }
+                is Resource.Success -> {
+                    mStoreEntity = result.data
+                    if (mStoreEntity != null) setUiStore(mStoreEntity!!)
+
+                }
+            }
+        })
+    }
+
+    private fun setUiStore(storeEntity: StoreEntity) {
+        with(mBinding) {
+            etName.setText(storeEntity.name)
+            etPhone.setText(storeEntity.phone)
+            etWebsite.setText(storeEntity.website)
+            etPhotoUrl.setText(storeEntity.photoUrl)
+            Glide.with(requireActivity())
+                .load(storeEntity.photoUrl)
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                .centerCrop()
+                .into(ivPhoto)
         }
     }
 
@@ -83,7 +124,7 @@ class EditStoreFragment : Fragment() {
                     photoUrl = mBinding.etPhotoUrl.text.toString().trim()
                 )
 
-                viewModel.addStore(store).observe(this, { result ->
+                mViewModel.addStore(store).observe(this, { result ->
                     when (result) {
                         is Resource.Failure -> {
                             hideKeyboard()

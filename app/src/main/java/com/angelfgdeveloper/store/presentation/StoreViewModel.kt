@@ -21,6 +21,16 @@ class StoreViewModel(private val repo: StoreRepository) : ViewModel() {
         }
     }
 
+    fun getStoreById(id: Long) = liveData(Dispatchers.IO) {
+        emit(Resource.Loading())
+
+        try {
+            emit(Resource.Success(repo.getStoreById(id)))
+        } catch (e: Exception) {
+            emit(Resource.Failure(e))
+        }
+    }
+
     fun addStore(storeEntity: StoreEntity) = liveData(Dispatchers.IO) {
         emit(Resource.Loading())
 
