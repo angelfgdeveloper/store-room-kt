@@ -5,6 +5,8 @@ import android.os.Bundle
 import android.util.Log
 import android.view.*
 import android.view.inputmethod.InputMethodManager
+import android.widget.Toast
+import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.angelfgdeveloper.store.R
@@ -17,6 +19,8 @@ import com.angelfgdeveloper.store.databinding.FragmentEditStoreBinding
 import com.angelfgdeveloper.store.domain.StoreRepositoryImpl
 import com.angelfgdeveloper.store.presentation.StoreViewModel
 import com.angelfgdeveloper.store.presentation.StoreViewModelFactory
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.google.android.material.snackbar.Snackbar
 
 class EditStoreFragment : Fragment() {
@@ -49,6 +53,14 @@ class EditStoreFragment : Fragment() {
         mActivity?.supportActionBar?.title = getString(R.string.edit_store_title_add)
 
         setHasOptionsMenu(true)
+
+        mBinding.etPhotoUrl.addTextChangedListener {
+            Glide.with(this)
+                .load(mBinding.etPhotoUrl.text.toString())
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                .centerCrop()
+                .into(mBinding.ivPhoto)
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -68,6 +80,7 @@ class EditStoreFragment : Fragment() {
                     name = mBinding.etName.text.toString().trim(),
                     phone = mBinding.etPhone.text.toString().trim(),
                     website = mBinding.etWebsite.text.toString().trim(),
+                    photoUrl = mBinding.etPhotoUrl.text.toString().trim()
                 )
 
                 viewModel.addStore(store).observe(this, { result ->
@@ -84,10 +97,16 @@ class EditStoreFragment : Fragment() {
                             mActivity?.addStore(store)
                             hideKeyboard()
 
-                            Snackbar.make(
-                                mBinding.root,
-                                getString(R.string.edit_store_message_save_success),
-                                Snackbar.LENGTH_SHORT
+//                            Snackbar.make(
+//                                mBinding.root,
+//                                getString(R.string.edit_store_message_save_success),
+//                                Snackbar.LENGTH_SHORT
+//                            ).show()
+
+                            Toast.makeText(
+                                mActivity,
+                                R.string.edit_store_message_save_success,
+                                Toast.LENGTH_SHORT
                             ).show()
 
                             mActivity?.onBackPressed()

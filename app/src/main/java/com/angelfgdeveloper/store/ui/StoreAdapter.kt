@@ -9,6 +9,8 @@ import com.angelfgdeveloper.store.R
 import com.angelfgdeveloper.store.core.OnClickListener
 import com.angelfgdeveloper.store.data.model.StoreEntity
 import com.angelfgdeveloper.store.databinding.ItemStoreBinding
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 
 class StoreAdapter(
     private var stores: MutableList<StoreEntity>,
@@ -31,6 +33,12 @@ class StoreAdapter(
             setListener(store)
             binding.tvName.text = store.name
             binding.cbFavorite.isChecked = store.isFavorite
+
+            Glide.with(mContext)
+                .load(store.photoUrl)
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                .centerCrop()
+                .into(binding.ivPhoto)
         }
     }
 
@@ -42,8 +50,10 @@ class StoreAdapter(
     }
 
     fun add(storeEntity: StoreEntity) {
-        stores.add(storeEntity)
-        notifyDataSetChanged()
+        if (!stores.contains(storeEntity)) {
+            stores.add(storeEntity)
+            notifyItemInserted(stores.size - 1)
+        }
     }
 
     fun update(storeEntity: StoreEntity) {
