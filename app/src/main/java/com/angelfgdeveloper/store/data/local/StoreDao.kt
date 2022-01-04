@@ -8,7 +8,7 @@ interface StoreDao {
     @Query("SELECT * FROM StoreEntity")
     suspend fun getAllStores(): MutableList<StoreEntity>
 
-    @Query("SELECT * FROM storeentity WHERE id = :id")
+    @Query("SELECT * FROM StoreEntity WHERE id = :id")
     suspend fun getStoreById(id: Long): StoreEntity
 
     //    @Insert(onConflict = OnConflictStrategy.REPLACE)

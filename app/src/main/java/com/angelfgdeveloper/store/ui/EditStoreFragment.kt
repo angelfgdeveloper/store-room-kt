@@ -2,6 +2,7 @@ package com.angelfgdeveloper.store.ui
 
 import android.content.Context
 import android.os.Bundle
+import android.text.Editable
 import android.util.Log
 import android.view.*
 import android.view.inputmethod.InputMethodManager
@@ -20,6 +21,7 @@ import com.angelfgdeveloper.store.presentation.StoreViewModel
 import com.angelfgdeveloper.store.presentation.StoreViewModelFactory
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.google.android.material.snackbar.Snackbar
 
 class EditStoreFragment : Fragment() {
 
@@ -54,7 +56,8 @@ class EditStoreFragment : Fragment() {
             mIsEditMode = true
             getStore(id)
         } else {
-            Toast.makeText(activity, id.toString(), Toast.LENGTH_SHORT).show()
+            mIsEditMode = false
+            mStoreEntity = StoreEntity(name = "", phone = "", photoUrl = "")
         }
 
         mActivity = activity as? MainActivity
@@ -92,17 +95,14 @@ class EditStoreFragment : Fragment() {
 
     private fun setUiStore(storeEntity: StoreEntity) {
         with(mBinding) {
-            etName.setText(storeEntity.name)
-            etPhone.setText(storeEntity.phone)
-            etWebsite.setText(storeEntity.website)
-            etPhotoUrl.setText(storeEntity.photoUrl)
-            Glide.with(requireActivity())
-                .load(storeEntity.photoUrl)
-                .diskCacheStrategy(DiskCacheStrategy.ALL)
-                .centerCrop()
-                .into(ivPhoto)
+            etName.text = storeEntity.name.editable()
+            etPhone.text = storeEntity.phone.editable()
+            etWebsite.text = storeEntity.website.editable()
+            etPhotoUrl.text = storeEntity.photoUrl.editable()
         }
     }
+
+    private fun String.editable(): Editable = Editable.Factory.getInstance().newEditable(this)
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         inflater.inflate(R.menu.menu_save, menu)
@@ -117,44 +117,66 @@ class EditStoreFragment : Fragment() {
                 true
             }
             R.id.action_save -> {
-                val store = StoreEntity(
-                    name = mBinding.etName.text.toString().trim(),
-                    phone = mBinding.etPhone.text.toString().trim(),
-                    website = mBinding.etWebsite.text.toString().trim(),
-                    photoUrl = mBinding.etPhotoUrl.text.toString().trim()
-                )
+                if (mStoreEntity != null) {
 
-                mViewModel.addStore(store).observe(this, { result ->
-                    when (result) {
-                        is Resource.Failure -> {
-                            hideKeyboard()
-                            Log.d("EditStoreFragment", "Error")
-                        }
-                        is Resource.Loading -> {
-                            Log.d("EditStoreFragment", "Cargando")
-                        }
-                        is Resource.Success -> {
-                            store.id = result.data
-                            mActivity?.addStore(store)
-                            hideKeyboard()
-
-//                            Snackbar.make(
-//                                mBinding.root,
-//                                getString(R.string.edit_store_message_save_success),
-//                                Snackbar.LENGTH_SHORT
-//                            ).show()
-
-                            Toast.makeText(
-                                mActivity,
-                                R.string.edit_store_message_save_success,
-                                Toast.LENGTH_SHORT
-                            ).show()
-
-                            mActivity?.onBackPressed()
-                        }
+                    with(mStoreEntity!!) {
+                        name = mBinding.etName.text.toString().trim()
+                        phone = mBinding.etPhone.text.toString().trim()
+                        website = mBinding.etWebsite.text.toString().trim()
+                        photoUrl = mBinding.etPhotoUrl.text.toString().trim()
                     }
-                })
 
+                    if (mIsEditMode) {
+                        mViewModel.updateStore(mStoreEntity!!).observe(this, { result ->
+                            when (result) {
+                                is Resource.Failure -> {
+                                    hideKeyboard()
+                                    Log.d("EditStoreFragment", "Error")
+                                }
+                                is Resource.Loading -> {
+                                    Log.d("EditStoreFragment", "Cargando")
+                                }
+                                is Resource.Success -> {
+                                    mActivity?.updateStore(mStoreEntity!!)
+                                    hideKeyboard()
+
+                                    Snackbar.make(
+                                        mBinding.root,
+                                        R.string.edit_store_message_update_success,
+                                        Snackbar.LENGTH_SHORT
+                                    ).show()
+
+                                    mActivity?.onBackPressed()
+                                }
+                            }
+                        })
+                    } else {
+                        mViewModel.addStore(mStoreEntity!!).observe(this, { result ->
+                            when (result) {
+                                is Resource.Failure -> {
+                                    hideKeyboard()
+                                    Log.d("EditStoreFragment", "Error")
+                                }
+                                is Resource.Loading -> {
+                                    Log.d("EditStoreFragment", "Cargando")
+                                }
+                                is Resource.Success -> {
+                                    mStoreEntity!!.id = result.data
+                                    mActivity?.addStore(mStoreEntity!!)
+                                    hideKeyboard()
+
+                                    Toast.makeText(
+                                        mActivity,
+                                        R.string.edit_store_message_save_success,
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+
+                                    mActivity?.onBackPressed()
+                                }
+                            }
+                        })
+                    }
+                }
                 true
             }
             else -> return super.onOptionsItemSelected(item)
