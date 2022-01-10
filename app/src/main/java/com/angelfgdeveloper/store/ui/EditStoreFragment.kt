@@ -22,6 +22,7 @@ import com.angelfgdeveloper.store.presentation.StoreViewModelFactory
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.google.android.material.snackbar.Snackbar
+import com.google.android.material.textfield.TextInputLayout
 
 class EditStoreFragment : Fragment() {
 
@@ -73,6 +74,10 @@ class EditStoreFragment : Fragment() {
                 .centerCrop()
                 .into(mBinding.ivPhoto)
         }
+
+        mBinding.etName.addTextChangedListener { validateFields(mBinding.tilName) }
+        mBinding.etPhone.addTextChangedListener { validateFields(mBinding.tilPhone) }
+        mBinding.etPhotoUrl.addTextChangedListener { validateFields(mBinding.tilPhotoUrl) }
     }
 
     private fun getStore(id: Long) {
@@ -117,7 +122,12 @@ class EditStoreFragment : Fragment() {
                 true
             }
             R.id.action_save -> {
-                if (mStoreEntity != null && validateFields()) {
+                if (mStoreEntity != null && validateFields(
+                        mBinding.tilPhotoUrl,
+                        mBinding.tilPhone,
+                        mBinding.tilName
+                    )
+                ) {
 
                     with(mStoreEntity!!) {
                         name = mBinding.etName.text.toString().trim()
@@ -181,6 +191,26 @@ class EditStoreFragment : Fragment() {
             }
             else -> return super.onOptionsItemSelected(item)
         }
+    }
+
+    private fun validateFields(vararg textFields: TextInputLayout): Boolean {
+        var isValid = true
+
+        for (textField in textFields) {
+            if (textField.editText?.text.toString().trim().isEmpty()) {
+                textField.error = getString(R.string.helper_required)
+//                textField.editText?.requestFocus()
+                isValid = false
+            } else textField.error = null
+        }
+
+        if (!isValid) Snackbar.make(
+            mBinding.root,
+            R.string.edit_store_message_valid,
+            Snackbar.LENGTH_SHORT
+        ).show()
+
+        return isValid
     }
 
     private fun validateFields(): Boolean {
