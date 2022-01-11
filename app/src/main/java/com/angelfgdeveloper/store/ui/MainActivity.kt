@@ -16,6 +16,7 @@ import com.angelfgdeveloper.store.databinding.ActivityMainBinding
 import com.angelfgdeveloper.store.domain.StoreRepositoryImpl
 import com.angelfgdeveloper.store.presentation.StoreViewModel
 import com.angelfgdeveloper.store.presentation.StoreViewModelFactory
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
 class MainActivity : AppCompatActivity(), OnClickListener, MainAux {
 
@@ -101,26 +102,33 @@ class MainActivity : AppCompatActivity(), OnClickListener, MainAux {
                     Log.d("mainActivity", "Cargando")
                 }
                 is Resource.Success -> {
-                    mAdapter.update(storeEntity)
+//                    mAdapter.update(storeEntity)
+                    updateStore(storeEntity)
                 }
             }
         })
     }
 
     override fun onDeleteStore(storeEntity: StoreEntity) {
-        viewModel.deleteStore(storeEntity).observe(this, { result ->
-            when (result) {
-                is Resource.Failure -> {
-                    Log.d("mainActivity", "Error")
-                }
-                is Resource.Loading -> {
-                    Log.d("mainActivity", "Cargando")
-                }
-                is Resource.Success -> {
-                    mAdapter.delete(storeEntity)
-                }
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.dialog_delete_title)
+            .setPositiveButton(R.string.dialog_delete_confirm) { _, i ->
+                viewModel.deleteStore(storeEntity).observe(this, { result ->
+                    when (result) {
+                        is Resource.Failure -> {
+                            Log.d("mainActivity", "Error")
+                        }
+                        is Resource.Loading -> {
+                            Log.d("mainActivity", "Cargando")
+                        }
+                        is Resource.Success -> {
+                            mAdapter.delete(storeEntity)
+                        }
+                    }
+                })
             }
-        })
+            .setNegativeButton(R.string.dialog_delete_cancel, null)
+            .show()
     }
 
     /**
