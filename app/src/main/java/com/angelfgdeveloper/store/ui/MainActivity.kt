@@ -1,7 +1,10 @@
 package com.angelfgdeveloper.store.ui
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
@@ -110,6 +113,20 @@ class MainActivity : AppCompatActivity(), OnClickListener, MainAux {
     }
 
     override fun onDeleteStore(storeEntity: StoreEntity) {
+        val items = arrayOf("Eliminar", "Llamar", "Ir al sitio web")
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.dialog_options_title)
+            .setItems(items) { dialogInterface, i ->
+                when (i) {
+                    0 -> confirmDelete(storeEntity)
+                    1 -> dial(storeEntity.phone)
+                    2 -> goToWebsite(storeEntity.website)
+                }
+            }
+            .show()
+    }
+
+    private fun confirmDelete(storeEntity: StoreEntity) {
         MaterialAlertDialogBuilder(this)
             .setTitle(R.string.dialog_delete_title)
             .setPositiveButton(R.string.dialog_delete_confirm) { _, i ->
@@ -129,6 +146,35 @@ class MainActivity : AppCompatActivity(), OnClickListener, MainAux {
             }
             .setNegativeButton(R.string.dialog_delete_cancel, null)
             .show()
+    }
+
+    private fun dial(phone: String) {
+        val callIntent = Intent().apply {
+            action = Intent.ACTION_DIAL
+            data = Uri.parse("tel:$phone")
+        }
+
+        if (callIntent.resolveActivity(packageManager) != null)
+            startActivity(callIntent)
+        else
+            Toast.makeText(this, R.string.main_error_no_resolve, Toast.LENGTH_SHORT).show()
+    }
+
+    private fun goToWebsite(website: String) {
+        if (website.isEmpty()) {
+            Toast.makeText(this, R.string.main_error_no_website, Toast.LENGTH_SHORT).show()
+        } else {
+            val websiteIntent = Intent().apply {
+                action = Intent.ACTION_VIEW
+                data = Uri.parse(website)
+            }
+
+            if (websiteIntent.resolveActivity(packageManager) != null)
+                startActivity(websiteIntent)
+            else
+                Toast.makeText(this, R.string.main_error_no_resolve, Toast.LENGTH_SHORT).show()
+        }
+
     }
 
     /**
